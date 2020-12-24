@@ -98,7 +98,7 @@ def run_GPT2(type):
 
     try:
         args = []
-        text = request.form['base']
+        base = request.form['base']
         samples = int(request.form['samples'])
 
         args.append(text)
