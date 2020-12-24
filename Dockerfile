@@ -5,9 +5,9 @@ RUN apt-get update && \
     apt-get install -y apt-utils wget
 
 RUN pip install --upgrade pip
-RUN pip install transformers==4.4.1
-RUN pip install flask==1.1.2
-RUN pip install waitress==1.4.4
+RUN pip install transformers
+RUN pip install flask
+RUN pip install waitress
 
 RUN mkdir -p /app
 WORKDIR /app
