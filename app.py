@@ -117,7 +117,7 @@ def run_GPT2(type):
     while 'output' not in req:
         time.sleep(CHECK_INTERVAL)
 
-    return req['output']
+    return jsonify(req['output'])
 
 
 @app.route('/healthz', methods=["GET"])
