@@ -20,7 +20,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 
 
-def request_handling():
+def handle_requests_by_batch():
     try:
         while True:
             request_batch = []
@@ -31,11 +31,16 @@ def request_handling():
                 except Empty:
                     continue
 
-            for requests in request_batch:
-                if len(requests['input']) == 2:
-                    requests['output'] = run_short(requests['input'][0], requests['input'][1])
-                elif len(requests['input']) == 3:
-                    requests['output'] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+            batch_outputs = []
+
+            for request in request_batch:
+                if len(request['input']) == 2:
+                    batch_outputs.append(run_short(request['input'][0], request['input'][1]))
+                elif len(request['input']) == 3:
+                    batch_outputs.append(run_long(request['input'][0], request['input'][1], request['input'][2]))
+
+            for request, output in zip(request_batch, batch_outputs):
+                request["output"] = output
 
     except Exception as e:
         while not requestQueue.empty():
@@ -43,20 +48,20 @@ def request_handling():
         return jsonify({'error': 'request_handling error'}), 500
 
 
-threading.Thread(target=request_handling).start()
+threading.Thread(target=handle_requests_by_batch).start()
 
 
-def run_short(base, samples):
+def run_short(text, samples):
     try:
-        base = base.strip()
-        input_ids = tokenizer.encode(base, return_tensors='pt')
+        text = text.strip()
+        input_ids = tokenizer.encode(text, return_tensors='pt')
         input_ids = input_ids.to(device)
 
         next_token_logits = model(input_ids).logits[:, -1, :]
 
         filtered_next_token_logits = top_k_top_p_filtering(next_token_logits, top_k=50, top_p=1.0)
 
-        probs = F.softmax(filtered_next_token_logits, dim=1)
+        probs = F.softmax(filtered_next_token_logits, dim=-1)
         next_token = torch.multinomial(probs, num_samples=samples)
 
         result = {}
@@ -70,10 +75,10 @@ def run_short(base, samples):
         return jsonify({'error': e}), 500
 
 
-def run_long(base, samples, length):
+def run_long(text, samples, length):
     try:
-        base = base.strip()
-        input_ids = tokenizer.encode(base, return_tensors='pt')
+        text = text.strip()
+        input_ids = tokenizer.encode(text, return_tensors='pt')
         input_ids = input_ids.to(device)
 
         min_length = len(input_ids.tolist()[0])
@@ -89,7 +94,8 @@ def run_long(base, samples, length):
         result = dict()
 
         for idx, token in enumerate(samples_outputs):
-            result[idx] = tokenizer.decode(samples_outputs.tolist()[min_length:], skip_special_tokens=True)
+            output = tokenizer.decode(samples_outputs.tolist()[min_length:], skip_special_tokens=True)
+            result[idx] = output
 
         return result
 
@@ -98,19 +104,20 @@ def run_long(base, samples, length):
 
 
 @app.route('/GPT2-marketing-man/<types>', methods=['POST'])
-def run_GPT2(type):
+def generate(type):
     if type != 'short' and type != 'long':
         return jsonify({'error': 'The wrong address.'}), 400
 
-    if requestQueue.qsize() >BATCH_SIZE:
+    if requestQueue.qsize() > BATCH_SIZE:
         return jsonify({'error': 'Too Many Requests'}), 429
 
     try:
         args = []
-        base = request.form['base']
+
+        text = request.form['text']
         samples = int(request.form['samples'])
 
-        args.append(base)
+        args.append(text)
         args.append(samples)
 
         if type == 'long':
