@@ -107,7 +107,7 @@ def run_GPT2(type):
 
     try:
         args = []
-        text = request.form['base']
+        base = request.form['base']
         samples = int(request.form['samples'])
 
         args.append(text)
@@ -126,7 +126,7 @@ def run_GPT2(type):
     while 'output' not in req:
         time.sleep(CHECK_INTERVAL)
 
-    return req['output']
+    return jsonify(req['output'])
 
 
 @app.route('/healthz', methods=["GET"])
