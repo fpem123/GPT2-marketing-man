@@ -110,7 +110,7 @@ def run_GPT2(type):
         base = request.form['base']
         samples = int(request.form['samples'])
 
-        args.append(text)
+        args.append(base)
         args.append(samples)
 
         if type == 'long':
