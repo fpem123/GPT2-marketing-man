@@ -7,7 +7,7 @@ info:   # Set basic infomation
     name: AInizer - Lee hoseop
 
 servers:   # Set your server endpoint
-  - url: https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai
+  - url: https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai/
 
 paths:
   /GPT2-marketing-man/short:

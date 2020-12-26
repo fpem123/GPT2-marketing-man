@@ -23,19 +23,19 @@ model.to(device)
 def request_handling():
     try:
         while True:
-            requestBatch = []
+            request_batch = []
 
-            while not (len(requestBatch) >= BATCH_SIZE):
+            while not (len(request_batch) >= BATCH_SIZE):
                 try:
-                    requestBatch.append(requestQueue.get(timeout=CHECK_INTERVAL))
+                    request_batch.append(requestQueue.get(timeout=CHECK_INTERVAL))
                 except Empty:
                     continue
 
-                for requests in requestBatch:
-                    if len(requests['input']) == 2:
-                        requests['output'] = run_short(requests['input'][0], requests['input'][1])
-                    elif len(requests['input']) == 3:
-                        requests['output'] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+            for requests in request_batch:
+                if len(requests['input']) == 2:
+                    requests['output'] = run_short(requests['input'][0], requests['input'][1])
+                elif len(requests['input']) == 3:
+                    requests['output'] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
 
     except Exception as e:
         while not requestQueue.empty():
@@ -110,7 +110,7 @@ def run_GPT2(type):
         base = request.form['base']
         samples = int(request.form['samples'])
 
-        args.append(text)
+        args.append(base)
         args.append(samples)
 
         if type == 'long':
@@ -132,6 +132,7 @@ def run_GPT2(type):
 @app.route('/healthz', methods=["GET"])
 def health_check():
     return "health", 200
+
 
 @app.route('/')
 def main():
