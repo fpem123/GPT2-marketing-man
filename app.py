@@ -31,16 +31,11 @@ def handle_requests_by_batch():
                 except Empty:
                     continue
 
-            batch_outputs = []
-
-            for request in request_batch:
-                if len(request['input']) == 2:
-                    batch_outputs.append(run_short(request['input'][0], request['input'][1]))
-                elif len(request['input']) == 3:
-                    batch_outputs.append(run_long(request['input'][0], request['input'][1], request['input'][2]))
-
-            for request, output in zip(request_batch, batch_outputs):
-                request["output"] = output
+                for request in request_batch:
+                    if len(request['input']) == 2:
+                        request["output"] = run_short(request['input'][0], request['input'][1])
+                    elif len(request['input']) == 3:
+                        request["output"] = run_long(request['input'][0], request['input'][1], request['input'][2])
 
     except Exception as e:
         while not requestQueue.empty():
@@ -53,8 +48,8 @@ threading.Thread(target=handle_requests_by_batch).start()
 
 def run_short(text, samples):
     try:
-        text = text.strip()
         input_ids = tokenizer.encode(text, return_tensors='pt')
+
         input_ids = input_ids.to(device)
 
         next_token_logits = model(input_ids).logits[:, -1, :]
@@ -64,7 +59,7 @@ def run_short(text, samples):
         probs = F.softmax(filtered_next_token_logits, dim=-1)
         next_token = torch.multinomial(probs, num_samples=samples)
 
-        result = {}
+        result = dict()
 
         for idx, token in enumerate(next_token.tolist()[0]):
             result[idx] = tokenizer.decode(token)
@@ -79,6 +74,7 @@ def run_long(text, samples, length):
     try:
         text = text.strip()
         input_ids = tokenizer.encode(text, return_tensors='pt')
+
         input_ids = input_ids.to(device)
 
         min_length = len(input_ids.tolist()[0])
@@ -94,8 +90,7 @@ def run_long(text, samples, length):
         result = dict()
 
         for idx, token in enumerate(samples_outputs):
-            output = tokenizer.decode(samples_outputs.tolist()[min_length:], skip_special_tokens=True)
-            result[idx] = output
+            result[idx] = tokenizer.decode(samples_outputs.tolist()[min_length:], skip_special_tokens=True)
 
         return result
 
