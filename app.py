@@ -141,6 +141,14 @@ def generate(types):
     return jsonify(req['output'])
 
 
+@app.route('/Debug_queue_clear')
+def queue_clear():
+    with requestQueue.mutex:
+        requestQueue.queue.clear()
+
+    return "Clear", 200
+
+
 @app.route('/healthz', methods=["GET"])
 def health_check():
     return "Health", 200
