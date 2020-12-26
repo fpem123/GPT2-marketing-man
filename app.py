@@ -109,8 +109,8 @@ def run_long(text, samples, length):
 
 
 @app.route('/GPT2-marketing-man/<types>', methods=['POST'])
-def generate(type):
-    if type != 'short' and type != 'long':
+def generate(types):
+    if types != 'short' and types != 'long':
         return jsonify({'error': 'The wrong address.'}), 400
 
     if requestQueue.qsize() > BATCH_SIZE:
@@ -125,7 +125,7 @@ def generate(type):
         args.append(text)
         args.append(samples)
 
-        if type == 'long':
+        if types == 'long':
             length = int(request.form['length'])
             args.append(length)
 
@@ -143,12 +143,12 @@ def generate(type):
 
 @app.route('/healthz', methods=["GET"])
 def health_check():
-    return "health", 200
+    return "Health", 200
 
 
 @app.route('/')
 def main():
-    return "Use API", 200
+    return "200 OK", 200
 
 
 if __name__ == '__main__':
