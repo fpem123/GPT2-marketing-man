@@ -21,56 +21,65 @@ model.to(device)
 
 
 def request_handling():
-    while True:
-        requestBatch = []
+    try:
+        while True:
+            requestBatch = []
 
-        while not (len(requestBatch) >= BATCH_SIZE):
-            try:
-                requestBatch.append(requestQueue.get(timeout=CHECK_INTERVAL))
-            except Empty:
-                continue
+            while not (len(requestBatch) >= BATCH_SIZE):
+                try:
+                    requestBatch.append(requestQueue.get(timeout=CHECK_INTERVAL))
+                except Empty:
+                    continue
 
-            for requests in requestBatch:
-                if len(requests['input']) == 2:
-                    requests['output'] = run_short(requests['input'][0], requests['input'][1])
-                elif len(requests['input']) == 3:
-                    requests['output'] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+                for requests in requestBatch:
+                    if len(requests['input']) == 2:
+                        requests['output'] = run_short(requests['input'][0], requests['input'][1])
+                    elif len(requests['input']) == 3:
+                        requests['output'] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+
+    except Exception as e:
+        while not requestQueue.empty():
+            requestQueue.get()
+        return jsonify({'error': 'request_handling error'}), 500
+
 
 threading.Thread(target=request_handling).start()
+
 
 def run_short(base, samples):
     try:
         base = base.strip()
-        inputIds = tokenizer.encode(base, return_tensors='pt')
-        inputIds = inputIds.to(device)
+        input_ids = tokenizer.encode(base, return_tensors='pt')
+        input_ids = input_ids.to(device)
 
-        nextTokenLogits = model(inputIds).logits[:, -1, :]
+        next_token_logits = model(input_ids).logits[:, -1, :]
 
-        filteredNextTokenLogits = top_k_top_p_filtering(nextTokenLogits, top_k=50, top_p=1.0)
+        filtered_next_token_logits = top_k_top_p_filtering(next_token_logits, top_k=50, top_p=1.0)
 
-        probs = F.softmax(filteredNextTokenLogits, dim=1)
-        nextToken = torch.multinomial(probs, num_samples=samples)
+        probs = F.softmax(filtered_next_token_logits, dim=1)
+        next_token = torch.multinomial(probs, num_samples=samples)
 
         result = {}
 
-        for idx, token in enumerate(nextToken.tolist()[0]):
+        for idx, token in enumerate(next_token.tolist()[0]):
             result[idx] = tokenizer.decode(token)
 
         return result
 
-    except Exception:
-        return jsonify({'error': Exception}), 500
+    except Exception as e:
+        return jsonify({'error': e}), 500
+
 
 def run_long(base, samples, length):
     try:
         base = base.strip()
-        inputIds = tokenizer.encode(base, return_tensors='pt')
-        inputIds = inputIds.to(device)
+        input_ids = tokenizer.encode(base, return_tensors='pt')
+        input_ids = input_ids.to(device)
 
-        minLength = len(inputIds.tolist()[0])
-        length += minLength
+        min_length = len(input_ids.tolist()[0])
+        length += min_length
 
-        samplesOutputs = model.generate(inputIds, pad_token_id=50256,
+        samples_outputs = model.generate(input_ids, pad_token_id=50256,
                                         do_sample=True,
                                         max_length=length,
                                         min_length=length,
@@ -79,16 +88,16 @@ def run_long(base, samples, length):
 
         result = dict()
 
-        for idx, token in enumerate(samplesOutputs):
-            result[idx] = tokenizer.decode(samplesOutputs.tolist()[minLength:], skip_special_tokens=True)
+        for idx, token in enumerate(samples_outputs):
+            result[idx] = tokenizer.decode(samples_outputs.tolist()[min_length:], skip_special_tokens=True)
 
         return result
 
-    except Exception:
-        return jsonify({'error': Exception}), 500
+    except Exception as e:
+        return jsonify({'error': e}), 500
 
 
-@app.route('/GPT2-marketing-man/<tpyes>', methods=['POST'])
+@app.route('/GPT2-marketing-man/<types>', methods=['POST'])
 def run_GPT2(type):
     if type != 'short' and type != 'long':
         return jsonify({'error': 'The wrong address.'}), 400
@@ -108,7 +117,7 @@ def run_GPT2(type):
             length = int(request.form['length'])
             args.append(length)
 
-    except Exception:
+    except Exception as e:
         return jsonify({'message': 'Invalid request, need args'}), 500
 
     req = {'input': args}
