@@ -48,6 +48,8 @@ threading.Thread(target=handle_requests_by_batch).start()
 
 def run_short(text, samples):
     try:
+        print('Start short GPT2')
+
         input_ids = tokenizer.encode(text, return_tensors='pt')
 
         input_ids = input_ids.to(device)
@@ -64,14 +66,19 @@ def run_short(text, samples):
         for idx, token in enumerate(next_token.tolist()[0]):
             result[idx] = tokenizer.decode(token)
 
+        print('Done')
+
         return result
 
     except Exception as e:
+        print('Oh no!', e)
         return jsonify({'error': e}), 500
 
 
 def run_long(text, samples, length):
     try:
+        print('Start long GPT2')
+
         text = text.strip()
         input_ids = tokenizer.encode(text, return_tensors='pt')
 
@@ -92,9 +99,12 @@ def run_long(text, samples, length):
         for idx, token in enumerate(samples_outputs):
             result[idx] = tokenizer.decode(samples_outputs.tolist()[min_length:], skip_special_tokens=True)
 
+        print('Done')
+
         return result
 
     except Exception as e:
+        print('Oh no!', e)
         return jsonify({'error': e}), 500
 
 
