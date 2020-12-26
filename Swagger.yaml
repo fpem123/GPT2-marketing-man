@@ -1,0 +1,70 @@
+openapi: 3.0.0   # Open api version
+
+info:   # Set basic infomation
+  title: GPT2-maketing-man
+  version: "v0.1"
+  contact:
+    name: AInizer - Lee hoseop
+
+servers:   # Set your server endpoint
+  - url: https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai
+
+paths:
+  /GPT2-marketing-man/short:
+    post:
+      requestBody:
+        required: true
+        description: "It is a natural number less than a million you want to do prime factorization."
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                base:
+                  type: string
+                samples:
+                  type: string
+      responses:   # Set response
+        '200':
+          description: "Successful Response"
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: "Bad Request Error"
+        '429':
+          description: "Too many requests"
+        '500':
+          description: "Server-side Error"
+          
+          
+  /GPT2-marketing-man/long:
+    post:
+      requestBody:
+        required: true
+        description: "It is a natural number less than a million you want to do prime factorization."
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                base:
+                  type: string
+                samples:
+                  type: string
+                length:
+                  type: string
+      responses:   # Set response
+        '200':
+          description: "Successful Response"
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: "Bad Request Error"
+        '429':
+          description: "Too many requests"
+        '500':
+          description: "Server-side Error"
