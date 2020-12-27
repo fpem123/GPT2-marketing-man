@@ -9,38 +9,32 @@ import time
 
 app = Flask(__name__)
 
-requestQueue = Queue()
-BATCH_SIZE = 1
-CHECK_INTERVAL = 0.1
-
 tokenizer = AutoTokenizer.from_pretrained("laxya007/gpt2_Marketingman")
 model = AutoModelWithLMHead.from_pretrained("laxya007/gpt2_Marketingman", return_dict=True)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 
+request_queue = Queue()
+BATCH_SIZE = 1
+CHECK_INTERVAL = 0.1
+
 
 def handle_requests_by_batch():
-    try:
-        while True:
-            request_batch = []
+    while True:
+        request_batch = []
 
-            while not (len(request_batch) >= BATCH_SIZE):
-                try:
-                    request_batch.append(requestQueue.get(timeout=CHECK_INTERVAL))
-                except Empty:
-                    continue
+        while not (len(request_batch) >= BATCH_SIZE):
+            try:
+                request_batch.append(request_queue.get(timeout=CHECK_INTERVAL))
+            except Empty:
+                continue
 
-                for request in request_batch:
-                    if len(request['input']) == 2:
-                        request["output"] = run_short(request['input'][0], request['input'][1])
-                    elif len(request['input']) == 3:
-                        request["output"] = run_long(request['input'][0], request['input'][1], request['input'][2])
-
-    except Exception as e:
-        while not requestQueue.empty():
-            requestQueue.get()
-        return jsonify({'error': 'request_handling error'}), 500
+            for requests in request_batch:
+                if len(requests['input']) == 2:
+                    requests["output"] = run_short(requests['input'][0], requests['input'][1])
+                elif len(requests['input']) == 3:
+                    requests["output"] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
 
 
 threading.Thread(target=handle_requests_by_batch).start()
@@ -88,11 +82,11 @@ def run_long(text, samples, length):
         length += min_length
 
         samples_outputs = model.generate(input_ids, pad_token_id=50256,
-                                        do_sample=True,
-                                        max_length=length,
-                                        min_length=length,
-                                        top_k=40,
-                                        num_return_sequences=samples)
+                                         do_sample=True,
+                                         max_length=length,
+                                         min_length=length,
+                                         top_k=40,
+                                         num_return_sequences=samples)
 
         result = dict()
 
@@ -113,7 +107,7 @@ def generate(types):
     if types != 'short' and types != 'long':
         return jsonify({'error': 'The wrong address.'}), 400
 
-    if requestQueue.qsize() > BATCH_SIZE:
+    if request_queue.qsize() > BATCH_SIZE:
         return jsonify({'error': 'Too Many Requests'}), 429
 
     try:
@@ -130,10 +124,10 @@ def generate(types):
             args.append(length)
 
     except Exception as e:
-        return jsonify({'message': 'Invalid request, need args'}), 500
+        return jsonify({'message': 'Invalid request'}), 500
 
     req = {'input': args}
-    requestQueue.put(req)
+    request_queue.put(req)
 
     while 'output' not in req:
         time.sleep(CHECK_INTERVAL)
@@ -143,8 +137,8 @@ def generate(types):
 
 @app.route('/Debug_queue_clear')
 def queue_clear():
-    with requestQueue.mutex:
-        requestQueue.queue.clear()
+    with request_queue.mutex:
+        request_queue.queue.clear()
 
     return "Clear", 200
 
