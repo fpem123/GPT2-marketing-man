@@ -78,20 +78,19 @@ def run_long(text, samples, length):
 
         input_ids = input_ids.to(device)
 
-        min_length = len(input_ids.tolist()[0])
-        length += min_length
+        length += len(input_ids.tolist()[0])
 
-        samples_outputs = model.generate(input_ids, pad_token_id=50256,
-                                         do_sample=True,
-                                         max_length=length,
-                                         min_length=length,
-                                         top_k=40,
-                                         num_return_sequences=samples)
+        sample_outputs = model.generate(input_ids, pad_token_id=50256,
+                                        do_sample=True,
+                                        max_length=length,
+                                        min_length=length,
+                                        top_k=40,
+                                        num_return_sequences=samples)
 
         result = dict()
 
-        for idx, token in enumerate(samples_outputs):
-            result[idx] = tokenizer.decode(samples_outputs.tolist()[min_length:], skip_special_tokens=True)
+        for idx, token in enumerate(sample_outputs):
+            result[idx] = tokenizer.decode(sample_outputs.tolist(), skip_special_tokens=True)
 
         print('Done')
 
