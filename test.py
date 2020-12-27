@@ -4,7 +4,7 @@ import time
 tokenizer = AutoTokenizer.from_pretrained("laxya007/gpt2_Marketingman")
 model = AutoModelWithLMHead.from_pretrained("laxya007/gpt2_Marketingman")
 
-prompt = "Hello, This is Lucy here. Today, I introduce this lotion. This lotion is"
+prompt = "Today, I introduce this lotion. This lotion is"
 
 input_ids = tokenizer.encode(prompt, return_tensors='pt')
 length = 20

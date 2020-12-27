@@ -69,30 +69,27 @@ def run_short(text, samples):
         return jsonify({'error': e}), 500
 
 
-def run_long(text, samples, length):
+def run_long(sequence, num_samples, length):
     try:
-        print('Start long GPT2')
+        sequence = sequence.strip()
+        input_ids = tokenizer.encode(sequence, return_tensors='pt')
 
-        text = text.strip()
-        input_ids = tokenizer.encode(text, return_tensors='pt')
-
+        # input_ids also need to apply gpu device!
         input_ids = input_ids.to(device)
 
-        length += len(input_ids.tolist()[0])
+        min_length = len(input_ids.tolist()[0])
+        length += min_length
 
         sample_outputs = model.generate(input_ids, pad_token_id=50256,
                                         do_sample=True,
                                         max_length=length,
                                         min_length=length,
                                         top_k=40,
-                                        num_return_sequences=samples)
+                                        num_return_sequences=num_samples)
 
         result = dict()
-
-        for idx, token in enumerate(sample_outputs):
-            result[idx] = tokenizer.decode(sample_outputs.tolist(), skip_special_tokens=True)
-
-        print('Done')
+        for idx, sample_output in enumerate(sample_outputs):
+            result[idx] = tokenizer.decode(sample_output.tolist()[min_length:], skip_special_tokens=True)
 
         return result
 
