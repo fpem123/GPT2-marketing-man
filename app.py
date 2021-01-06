@@ -6,7 +6,7 @@
 '''
 # External module.
 from transformers import AutoModelForCausalLM, AutoTokenizer, top_k_top_p_filtering
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response, jsonify, render_template
 import torch
 from torch.nn import functional as F
 
@@ -33,26 +33,20 @@ CHECK_INTERVAL = 0.1
 # Request handler.
 # GPU app can process only one request in one time.
 def handle_requests_by_batch():
-    try:
-        while True:
-            request_batch = []
+    while True:
+        request_batch = []
 
-            while not (len(request_batch) >= BATCH_SIZE):
-                try:
-                    request_batch.append(requests_queue.get(timeout=CHECK_INTERVAL))
-                except Empty:
-                    continue
+        while not (len(request_batch) >= BATCH_SIZE):
+            try:
+                request_batch.append(requests_queue.get(timeout=CHECK_INTERVAL))
+            except Empty:
+                continue
 
             for requests in request_batch:
                 if len(requests['input']) == 2:
                     requests["output"] = run_short(requests['input'][0], requests['input'][1])
                 elif len(requests['input']) == 3:
                     requests["output"] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
-    # error request pop
-    except Exception as e:
-        while not requests_queue.empty():
-            requests_queue.get()
-        print(e)
 
 
 handler = threading.Thread(target=handle_requests_by_batch).start()
@@ -179,7 +173,7 @@ def health_check():
 # Main page.
 @app.route('/')
 def main():
-    return "200 OK", 200
+    return render_template('main.html'), 200
 
 
 if __name__ == '__main__':
