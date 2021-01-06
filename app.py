@@ -1,49 +1,69 @@
+'''
+    Name: app.py
+    Writer: Hoseop Lee, Ainizer
+    Rule: Flask app
+    update: 21.01.06
+'''
+# External module.
 from transformers import AutoModelWithLMHead, AutoTokenizer, top_k_top_p_filtering
 from flask import Flask, request, Response, jsonify
 import torch
 from torch.nn import functional as F
 
+# Internal module.
 from queue import Queue, Empty
 import threading
 import time
 
 app = Flask(__name__)
 
+# tokenizer and model loading.
 tokenizer = AutoTokenizer.from_pretrained("laxya007/gpt2_Marketingman")
 model = AutoModelWithLMHead.from_pretrained("laxya007/gpt2_Marketingman", return_dict=True)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')   # gpu check.
 model.to(device)
 
-request_queue = Queue()
-BATCH_SIZE = 1
+requests_queue = Queue()    # request queue.
+BATCH_SIZE = 1              # max request size.
 CHECK_INTERVAL = 0.1
 
 
+##
+# Request handler.
+# GPU app can process only one request in one time.
 def handle_requests_by_batch():
-    while True:
-        request_batch = []
+    try:
+        while True:
+            request_batch = []
 
-        while not (len(request_batch) >= BATCH_SIZE):
-            try:
-                request_batch.append(request_queue.get(timeout=CHECK_INTERVAL))
-            except Empty:
-                continue
+            while not (len(request_batch) >= BATCH_SIZE):
+                try:
+                    request_batch.append(requests_queue.get(timeout=CHECK_INTERVAL))
+                except Empty:
+                    continue
 
-            for requests in request_batch:
-                if len(requests['input']) == 2:
-                    requests["output"] = run_short(requests['input'][0], requests['input'][1])
-                elif len(requests['input']) == 3:
-                    requests["output"] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+                for requests in request_batch:
+                    if len(requests['input']) == 2:
+                        requests["output"] = run_short(requests['input'][0], requests['input'][1])
+                    elif len(requests['input']) == 3:
+                        requests["output"] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+    except Exception as e:
+        while not requests_queue.empty():
+            requests_queue.get()
+        print(e)
 
 
-threading.Thread(target=handle_requests_by_batch).start()
+handler = threading.Thread(target=handle_requests_by_batch)
+handler.daemon = True
+handler.start()
 
 
+##
+# short gpt-2 text generation.
+# Generate one char.
 def run_short(text, samples):
     try:
-        print('Start short GPT2')
-
         input_ids = tokenizer.encode(text, return_tensors='pt')
 
         input_ids = input_ids.to(device)
@@ -60,8 +80,6 @@ def run_short(text, samples):
         for idx, token in enumerate(next_token.tolist()[0]):
             result[idx] = tokenizer.decode(token)
 
-        print('Done')
-
         return result
 
     except Exception as e:
@@ -69,6 +87,9 @@ def run_short(text, samples):
         return jsonify({'error': e}), 500
 
 
+##
+# long gpt-2 text generation.
+# Generate long sting as size of 'length'.
 def run_long(sequence, num_samples, length):
     try:
         sequence = sequence.strip()
@@ -83,7 +104,7 @@ def run_long(sequence, num_samples, length):
         sample_outputs = model.generate(input_ids, pad_token_id=50256,
                                         do_sample=True,
                                         max_length=length,
-                                        min_length=length,
+                                        min_length=length / 1.5,
                                         top_k=40,
                                         num_return_sequences=num_samples)
 
@@ -98,12 +119,16 @@ def run_long(sequence, num_samples, length):
         return jsonify({'error': e}), 500
 
 
+##
+# Get post request page.
 @app.route('/GPT2-marketing-man/<types>', methods=['POST'])
 def generate(types):
+    # type checking.
     if types != 'short' and types != 'long':
         return jsonify({'error': 'The wrong address.'}), 400
 
-    if request_queue.qsize() > BATCH_SIZE:
+    # GPU app can process only one request in one time.
+    if requests_queue.qsize() > BATCH_SIZE:
         return jsonify({'error': 'Too Many Requests'}), 429
 
     try:
@@ -122,28 +147,36 @@ def generate(types):
     except Exception as e:
         return jsonify({'message': 'Invalid request'}), 500
 
+    # input a request on queue
     req = {'input': args}
-    request_queue.put(req)
+    requests_queue.put(req)
 
+    # wait
     while 'output' not in req:
         time.sleep(CHECK_INTERVAL)
 
     return jsonify(req['output'])
 
 
-@app.route('/Debug_queue_clear')
+##
+# Queue deadlock error debug page.
+@app.route('/queue_clear')
 def queue_clear():
-    with request_queue.mutex:
-        request_queue.queue.clear()
+    with requests_queue.mutex:
+        requests_queue.queue.clear()
 
     return "Clear", 200
 
 
+##
+# Sever health checking page.
 @app.route('/healthz', methods=["GET"])
 def health_check():
     return "Health", 200
 
 
+##
+# Main page.
 @app.route('/')
 def main():
     return "200 OK", 200
