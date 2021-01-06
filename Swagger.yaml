@@ -1,12 +1,20 @@
 openapi: 3.0.0   # Open api version
 
-info:   # Set basic infomation
+info:
   title: GPT2-maketing-man
   version: "v0.1"
   contact:
     name: AInizer - Lee hoseop
+  description: |
+    This app is generate marketing man style text!
+    ---
+      How to use:
+      * First, Choose wanna type!
+      * Second, Fill text in text! This will be base of marketing man style text!
+      * And then, Fill number in sample! The app generates sample number of text!
+      * If you select 'long' type, be fill number in length! The app generates text of that size!
 
-servers:   # Set your server endpoint
+servers:
   - url: https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai/
 
 paths:
@@ -14,7 +22,7 @@ paths:
     post:
       requestBody:
         required: true
-        description: "It is a natural number less than a million you want to do prime factorization."
+        description: "This request will get short response. That means a word including special character."
         content:
           multipart/form-data:
             schema:
@@ -43,7 +51,7 @@ paths:
     post:
       requestBody:
         required: true
-        description: "It is a natural number less than a million you want to do prime factorization."
+        description: "This request will get long response. That is marketing man style text. length must be more than 20. If less than 20, it's replaced 20."
         content:
           multipart/form-data:
             schema:
