@@ -5,7 +5,7 @@
     update: 21.01.06
 '''
 # External module.
-from transformers import AutoModelWithLMHead, AutoTokenizer, top_k_top_p_filtering
+from transformers import AutoModelForCausalLM, AutoTokenizer, top_k_top_p_filtering
 from flask import Flask, request, Response, jsonify
 import torch
 from torch.nn import functional as F
@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 # tokenizer and model loading.
 tokenizer = AutoTokenizer.from_pretrained("laxya007/gpt2_Marketingman")
-model = AutoModelWithLMHead.from_pretrained("laxya007/gpt2_Marketingman", return_dict=True)
+model = AutoModelForCausalLM.from_pretrained("laxya007/gpt2_Marketingman", return_dict=True)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')   # gpu check.
 model.to(device)
@@ -43,25 +43,24 @@ def handle_requests_by_batch():
                 except Empty:
                     continue
 
-                for requests in request_batch:
-                    if len(requests['input']) == 2:
-                        requests["output"] = run_short(requests['input'][0], requests['input'][1])
-                    elif len(requests['input']) == 3:
-                        requests["output"] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+            for requests in request_batch:
+                if len(requests['input']) == 2:
+                    requests["output"] = run_short(requests['input'][0], requests['input'][1])
+                elif len(requests['input']) == 3:
+                    requests["output"] = run_long(requests['input'][0], requests['input'][1], requests['input'][2])
+    # error request pop
     except Exception as e:
         while not requests_queue.empty():
             requests_queue.get()
         print(e)
 
 
-handler = threading.Thread(target=handle_requests_by_batch)
-handler.daemon = True
-handler.start()
+handler = threading.Thread(target=handle_requests_by_batch).start()
 
 
 ##
 # short gpt-2 text generation.
-# Generate one char.
+# Generate one word.
 def run_short(text, samples):
     try:
         input_ids = tokenizer.encode(text, return_tensors='pt')
@@ -109,6 +108,7 @@ def run_long(sequence, num_samples, length):
                                         num_return_sequences=num_samples)
 
         result = dict()
+
         for idx, sample_output in enumerate(sample_outputs):
             result[idx] = tokenizer.decode(sample_output.tolist()[min_length:], skip_special_tokens=True)
 

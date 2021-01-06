@@ -1,8 +1,8 @@
-from transformers import AutoTokenizer, AutoModelWithLMHead
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import time
 
 tokenizer = AutoTokenizer.from_pretrained("laxya007/gpt2_Marketingman")
-model = AutoModelWithLMHead.from_pretrained("laxya007/gpt2_Marketingman")
+model = AutoModelForCausalLM.from_pretrained("laxya007/gpt2_Marketingman")
 
 prompt = "Today, I introduce this lotion. This lotion is"
 
