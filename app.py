@@ -94,10 +94,12 @@ def run_long(sequence, num_samples, length):
         min_length = len(input_ids.tolist()[0])
         length += min_length
 
+        length = length if length > 20 else 20
+
         sample_outputs = model.generate(input_ids, pad_token_id=50256,
                                         do_sample=True,
                                         max_length=length,
-                                        min_length=length / 1.5,
+                                        min_length=10,
                                         top_k=40,
                                         num_return_sequences=num_samples)
 
