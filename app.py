@@ -76,7 +76,7 @@ def run_short(text, samples):
         return result
 
     except Exception as e:
-        print('Oh no!', e)
+        print('Error occur in short generating!', e)
         return jsonify({'error': e}), 500
 
 
@@ -99,19 +99,19 @@ def run_long(sequence, num_samples, length):
         sample_outputs = model.generate(input_ids, pad_token_id=50256,
                                         do_sample=True,
                                         max_length=length,
-                                        min_length=10,
+                                        min_length=min_length,
                                         top_k=40,
                                         num_return_sequences=num_samples)
 
         result = dict()
 
         for idx, sample_output in enumerate(sample_outputs):
-            result[idx] = tokenizer.decode(sample_output.tolist()[min_length:], skip_special_tokens=True)
+            result[idx] = tokenizer.decode(sample_output.tolist(), skip_special_tokens=True)
 
         return result
 
     except Exception as e:
-        print('Oh no!', e)
+        print('Error occur in long generating!', e)
         return jsonify({'error': e}), 500
 
 
@@ -121,11 +121,11 @@ def run_long(sequence, num_samples, length):
 def generate(types):
     # type checking.
     if types != 'short' and types != 'long':
-        return jsonify({'error': 'The wrong address.'}), 400
+        return jsonify({'Error': 'The wrong address.'}), 400
 
     # GPU app can process only one request in one time.
     if requests_queue.qsize() > BATCH_SIZE:
-        return jsonify({'error': 'Too Many Requests'}), 429
+        return jsonify({'Error': 'Too Many Requests'}), 429
 
     try:
         args = []
