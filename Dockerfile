@@ -5,7 +5,9 @@ RUN apt-get update && \
     apt-get install -y apt-utils wget
 
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install transformers
+RUN pip install flask
+RUN pip install waitress
 
 RUN mkdir -p /app
 WORKDIR /app
@@ -13,4 +15,4 @@ COPY . .
 
 EXPOSE 80
 
-CMD ['python3', 'app.py']
+CMD ["python3", "app.py"]
