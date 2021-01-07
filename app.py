@@ -96,6 +96,7 @@ def run_long(sequence, num_samples, length):
 
         length = length if length > 20 else 20
 
+        # model generating
         sample_outputs = model.generate(input_ids, pad_token_id=50256,
                                         do_sample=True,
                                         max_length=length,
