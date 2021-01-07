@@ -105,7 +105,7 @@ def run_GPT2(type):
         args.append(samples)
 
         if type == 'long':
-            length = int(request.form['length'])
+            length = intd(request.form['length'])
             args.append(length)
 
     except Exception:
