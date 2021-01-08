@@ -19,7 +19,6 @@
         flag = false;
     }
 
-
     function double_submit_check() {
         if (flag) {
             console.log("double");
@@ -38,6 +37,7 @@
         }
 
         const text = document.getElementById("text").value;
+        const length = document.getElementById("length").value;
 
         if (text == ''){
             document.getElementById('warning').innerText = 'Please fill text!';
@@ -50,7 +50,7 @@
 
         formData.append('text', text);
         formData.append('samples', 1);
-        formData.append('length', 200);
+        formData.append('length', length);
 
         timer = setInterval(() => {
             start += 1;
@@ -71,7 +71,7 @@
         }).then(data => {
             const result_text = document.getElementById('generated');
 
-            result_text.innerText = '&nbsp;&nbsp;' + data[0];
+            result_text.innerHTML = '&nbsp;&nbsp;' + data[0];
 
             clearInterval(timer);
             time_obj.innerText = 'Done!';
@@ -83,12 +83,20 @@
         });
     }
 
-
 </script>
 <body>
     <div class="styles">
         <style>
                 #button{
+                    border-top-left-radius: 5pt;
+                    border-top-right-radius: 5pt;
+                    border-bottom-left-radius: 5pt;
+                    border-bottom-right-radius: 5pt;
+                }
+
+                #length{
+                    width: 70px;
+                    height: 30px;
                     border-top-left-radius: 5pt;
                     border-top-right-radius: 5pt;
                     border-bottom-left-radius: 5pt;
@@ -102,10 +110,10 @@
                 <br>
                 <!-- Project title -->
                 <h1>GPT-2 Marketing man</h1><br>
-                <a>Generate marketing man style text. Using GPT-2 model.</a><br><br>
+                <a>Generate marketing man style text using GPT-2 model.</a><br><br>
                 <a>Git hub repository : </a> <a href="https://github.com/fpem123/GPT2-marketing-man" target="_blank">GPT-2 Marketing man</a><br>
                 <a>Open API : </a> <a href="https://ainize.ai/fpem123/GPT2-marketing-man?branch=main" target="_blank">On Ainize</a><br>
-                <a>Model : </a><a href="https://huggingface.co/laxya007/gpt2_Marketingman" target="_blank">Hugging face - laxya007/gpt2_Marketingman</a><br><br>
+                <a>Model : </a><a href="https://huggingface.co/laxya007/gpt2_Marketingman" target="_blank">Hugging face</a><br><br>
             </div>
 
             <hr width="90%">
@@ -114,18 +122,7 @@
                 <h3>Notice</h3>
                 <ul>
                     <li>This demo creates a long type text.</li>
-                    <li>In this demo, the length of the text is fixed at 200.</li>
                 </ul>
-            </div>
-
-            <br><hr width="90%">
-
-            <div class="generate">
-                <h3>Try it!</h3><br>
-                <label>Start text: </label>
-                <input type="text" id="text" style="width:40%">
-                <button class="btn btn-primary btn=lg" type="submit" id="button" onclick="send_req();">submit</button><br>
-                <b><label id="warning" style="color:red;"></label></b>
             </div>
 
             <br><hr width="90%">
@@ -148,11 +145,30 @@
 
             <br><hr width="90%">
 
+            <div class="generate">
+                <h3>Try it!</h3><br>
+                <label>Start text: </label>
+                <input type="text" id="text" style="width:40%">
+                <label>length: </label>
+                <select id="length">
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="150">150</option>
+                    <option value="2000">200</option>
+                </select>
+                <button class="btn btn-primary btn=lg" type="submit" id="button" onclick="send_req();">submit</button><br>
+                <b><label id="warning" style="color:red;"></label></b>
+            </div>
+
+            <br><hr width="90%">
+
             <div class="result">
                 <h3><label>Result</label>&nbsp;&nbsp;&nbsp;<label id="timer"></label></h3>
                 <h5><label>Text</label></h5>
                 <label id="generated"></label>
             </div>
+
+            <br><hr width="50%">
         </div>
     </div>
 </body>
