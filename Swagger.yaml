@@ -22,7 +22,13 @@ paths:
     post:
       requestBody:
         required: true
-        description: "This request will get short response. That means a word including special character."
+        description: |
+          This request will get short response. That means a word including special character.
+        
+          curl example
+            
+              curl -X POST "https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai/GPT2-marketing-man/short" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "text=Hello " -F "samples=3"
+        
         content:
           multipart/form-data:
             schema:
@@ -51,7 +57,13 @@ paths:
     post:
       requestBody:
         required: true
-        description: "This request will get long response. That is marketing man style text. length must be more than 20. If less than 20, it's replaced 20."
+        description: |
+          This request will get long response. That is marketing man style text. length must be more than 20. If less than 20, it's replaced 20.
+          
+          curl example
+          
+              curl -X POST "https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai/GPT2-marketing-man/long" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "text=Hello, " -F "samples=3" -F "length=50"
+          
         content:
           multipart/form-data:
             schema:
