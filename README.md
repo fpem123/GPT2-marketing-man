@@ -12,82 +12,36 @@ model: [laxya007/gpt2_Marketingman](https://huggingface.co/laxya007/gpt2_Marketi
 
 * Second, Fill text in "text"! This will be base of marketing man style text!
 
-* And then, Fill number in "samples"! The app generates sample number of text!
+* And then, Fill number in "num_samples"! The app generates sample number of text!
 
 * If you select 'long' type, be fill number in "length"! The app generates text of that size
 
 
 ### ** Post parameter **
 
-#### /GPT2-marketing-man/short
-
-
-    text: The base text to generate a word.
-    samples: How many generate word?
-  
-
-
-#### /GPT2-marketing-man/long
-
+#### /infer/GPT2-marketing-man
 
     text: The base text to generate marketing man style text.
-    samples: How many generate text?
+    num_samples: How many generate text?
     length: Size of text.
-
-
-### Output format
-
-#### /GPT2-marketing-man/short
-
-    {
-        number: word,
-        number: word,
-        number: word,
-        ...
-    }
-  
-
-#### /GPT2-marketing-man/long
-
-    {
-        number: generated text,
-        number: generated text,
-        number: generated text,
-        ...
-    }
-  
 
 ### ** With CLI **
 
-#### /GPT2-marketing-man/short
+#### /infer/GPT2-marketing-man
 
 Input example
 
-    curl -X POST "https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai/GPT2-marketing-man/short" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "text=Hello " -F "samples=3"
+    curl -X POST "https://feature-add-torch-serve-gpt-2-server-gkswjdzz.endpoint.ainize.ai/infer/GPT2-marketing-man" -H "accept: */*" -H "Content-Type: application/json" -d "{\"text\":\"Hi There is a Test.\",\"num_samples\":5,\"length\":20}"
 
 
 Output example
 
     {
-        "0": ",",
-        "1": " for",
-        "2": " Bit"
-    }
-
-
-#### /GPT2-marketing-man/long
-
-Input example
-
-    curl -X POST "https://main-gpt2-marketing-man-fpem123.endpoint.ainize.ai/GPT2-marketing-man/long" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "text=Hello, " -F "samples=3" -F "length=50"
-
-
-Output example
-
-    {
-        "0": "Hello, world! Welcome to The Daily Apple! When I first started blogging, my first thought was, “Wow, I could actually do this.” In 2007, with the help of my daughter, I launched The Daily Apple website. As a",
-        "1": "Hello, welcome to The Sims.  : Defining and Measuring Service Quality 309 Copyright 2010 Cengage Learning. All Rights Reserved. May not be copied, scanned, or duplicated, in whole or in part. Due to electronic rights, some third",
-        "2": "Hello, this is Mr. Clausen. This is my wife. I see that you are well aware that the airline reservation system is extremely difficult for the average consumer to use. I have thought about it, and after some discussion it seemed to me that perhaps"
+        "0": "Hi There is a Test. What Can I Do? The first thing you should do is to know that there is a problem!",
+        "1": "Hi There is a Test. It Is a Good Idea…\nTest your relationship knowledge with a book test. This is a great",
+        "2": "Hi There is a Test. You must answer the quiz correctly to proceed. 0 points: You must answer correctly to proceed. 2",
+        "3": "Hi There is a Test. I mean, what is the difference? There is no such thing as an absolute test but if you",
+        "4": "Hi There is a Test. A customer ’ s satisfaction with a service firm is based on how he perceives that the firm"
     }
   
 
