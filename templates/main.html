@@ -46,19 +46,24 @@
         }
 
         const formData = new FormData();
-        const url = "/GPT2-marketing-man/long";
+        const url = "https://feature-add-torch-serve-gpt-2-server-gkswjdzz.endpoint.ainize.ai/infer/GPT2-marketing-man";
         let start = 0;
 
-        formData.append('text', text);
-        formData.append('samples', 1);
-        formData.append('length', length);
+        const data = {
+            text,
+            num_samples: 1,
+            length: parseInt(length)
+        };
+
+        const headers = new Headers();
+        headers.append("Content-Type", "application/json");
 
         timer = setInterval(() => {
             start += 1;
             time_obj.innerText = `${start / 10} 's`;
         }, 100);
 
-        fetch (url, { method: 'POST', body: formData, })
+        fetch (url, { method: 'POST', headers: headers, body: JSON.stringify(data)})
         .then(response => {
             if (response.status === 200) {
                 return response.json();
